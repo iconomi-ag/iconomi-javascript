@@ -1,16 +1,16 @@
 import fetch from 'node-fetch';
 import CryptoJS from 'crypto-js';
 
-const URL = 'https://api.iconomi.com'
-const ICN_KEY = '<YOUR_KEY>'
-const ICN_SECRET = '<YOUR_SECRET>'
+const API_URL = 'https://api.iconomi.com'
+const API_SECRET = '<YOUR_SECRET>'
+const API_KEY = '<YOUR_KEY>'
 
 export function getAssets() {
   get('/v1/assets')
 }
 
 export function getActivity() {
-  get('/v1/user/activity')
+  get('/v1/user/activity?type=FEES_AND_EARNINGS')
 }
 
 export function getStructure(ticker) {
@@ -53,7 +53,7 @@ export function call(method, api, payload) {
   var request = {
     'method': method,
     'headers': {
-      'ICN-API-KEY': ICN_KEY,
+      'ICN-API-KEY': API_KEY,
       'ICN-SIGN': hashSign,
       'ICN-TIMESTAMP':timestamp,
       'Content-Type': 'application/json'
@@ -64,7 +64,7 @@ export function call(method, api, payload) {
     request.body = payload
   }
 
-  fetch(URL + api, request)
+  fetch(API_URL + api, request)
       .then( (httpResponse) => {
         if (httpResponse.ok) {
           return httpResponse.json();
@@ -78,8 +78,13 @@ export function call(method, api, payload) {
 }
 
 export function generateSignature(payload, requestType, requestPath, timestamp) {
+  var index = requestPath.indexOf('?')
+  if (index != -1) {
+    requestPath = requestPath.substring(0, index)
+  }
+
   var textToSign = timestamp + requestType + requestPath + payload
-  return CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA512(textToSign, ICN_SECRET))
+  return CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA512(textToSign, API_SECRET))
 }
 
 // fetch all available assets
